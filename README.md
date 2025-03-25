@@ -1,35 +1,50 @@
+# PyJS Collaborative Editor Project
 
-## TODO
+A project testing collaborative editing with Django, WebSocket, and Yjs on Quill. This README documents the installation, setup, and notes for both client and server configurations.
 
-- redis backend store : copy storage and adapt yjs_consumer https://github.com/jupyter-server/pycrdt-websocket/pull/25
+## Features & TODO
+- Implement Redis backend store: copy storage and adapt yjs_consumer from https://github.com/jupyter-server/pycrdt-websocket/pull/25
 
-
-
-## Setup
-
+## Installation and Setup
+### Environment Setup
 ```
 python -m venv venv
 activate venv
 pip install -r requirements.txt
-npm install
-npm run dev
+```
+### Django Setup
+```
 python manage.py migrate
 python manage.py collectstatic
 python manage.py createsuperuser
 python manage.py runserver
-add a one or more post via admin and naviguate to /collab/1
+```
+After setup, add one or more posts via admin and navigate to `/collab/1`.
+
+### Frontend dep building (optional)
+```
+npm install
+npm run build
 ```
 
-
 ## Notes
-### client
-- we have static editor-bundle which contains y-quill and quill cursors (package build via npm/vite)
-- custom overrides django_quill.js 
-- custom widget.html override to inject cursors into modules and initialize binding if instance_id and model are set in attrs via form (self.fields['field_name_to_make_collaborative'].widget.attrs.update({'model': 'demo.QuillPost', 'instance_id': instance_id}))
-- username of current user has to be injected into quillpost_form, (this part could be more standardised for easy reuse in multiple forms) We create one WS connection per form, to support multiple fields on the same ydoc connection.
-### server
-- we have a django channels asgi setup, with Custom YjsConsumer to load the quill delta into a ydoc.test delta
-- room persistence is a global dictionnary and we count number of client to delete ydoc. 
-- redis implementation from https://github.com/jupyter-server/pycrdt-websocket/pull/25 should be tests instead
-- more advanced permissions need to be checked in connect()
+
+### Client
+- Uses a static editor-bundle that contains y-quill and quill cursors (package built via npm/vite).
+- Mandatory: Only import Yjs a single time. Some dependencies must be built via bundler since UMD is not supported, only ESM.
+- Custom `widget.html` override injects cursors into modules and initializes binding if `instance_id` and `model` are set in attrs. of forms.py
+  - Example: 
+    ```python
+    self.fields['field_name_to_make_collaborative'].widget.attrs.update({
+        'model': 'demo.QuillPost', 
+        'instance_id': instance_id
+    })
+    ```
+- The username of the current user must be injected into the `quillpost_form`. A separate WebSocket connection is created for each form to support multiple fields on the same Ydoc connection,  without creating a connection per field.
+
+### Server
+- Configured with Django Channels ASGI setup and a custom YjsConsumer to load the Quill delta into a Ydoc test delta.
+- Uses a global dictionary to manage room persistence and client count before deleting the Ydoc. (only for quick testing)
+- Redis implementation from https://github.com/jupyter-server/pycrdt-websocket/pull/25 has to be tested.
+- More advanced permissions need to be checked during WebSocket connection (`connect()`) in Consumers
 
