@@ -1,12 +1,16 @@
-from django import forms
+from . import models
+from django.forms import ModelForm
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 
-class ModelFormWithInstance(forms.ModelForm):
-    """
-    A ModelForm that passes the instance to each field's widget.
-    """
+class QuillPostForm(ModelForm):
+    class Meta:
+        model = models.QuillPost
+        fields = ['content']
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if hasattr(self, 'instance'):
-            # Add form to each field's widget attrs
-            for field_name, field in self.fields.items():
-                field.widget.attrs['form'] = self
+        self.helper = FormHelper()
+        self.helper.add_input(Submit("save", "Save"))
+        instance_id = kwargs.get('instance').id if kwargs.get('instance') else 'new'
+        self.fields['content'].widget.attrs.update({'model': 'demo.QuillPost', 'instance_id': instance_id})

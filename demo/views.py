@@ -1,4 +1,7 @@
 from django.shortcuts import render
+from . import models
+from . import forms
+from django.views.generic.edit import UpdateView
 
 # Create your views here.
 def index(request):
@@ -11,3 +14,9 @@ def index(request):
     }
     
     return render(request, 'demo/index.html', context)
+
+
+class CollabView(UpdateView):
+    model = models.QuillPost
+    form_class = forms.QuillPostForm
+    

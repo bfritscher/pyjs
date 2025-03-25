@@ -1,6 +1,6 @@
 {% load static %}
 <div class="vLargeTextField django-quill-widget-container form-row {{ class }}">
-    <h1>test data-model="{{ instance_model|default:'' }}" data-model-id="{{ instance_id|default:'' }}"</h1>
+
     <div id="quill-{{ id }}" class="django-quill-widget" data-config="{{ config }}" data-type="django-quill"></div>
     <input id="quill-input-{{ id }}" name="{{ name }}" type="hidden">
     <script>
@@ -26,11 +26,14 @@
             // Allow quill object interaction outer scope
             djq['{{ id }}'] = wrapper;
             
-            // Store model information in the wrapper object
-            wrapper.modelName = "{{ instance_model|default:'' }}";
-            wrapper.modelId = "{{ instance_id|default:'' }}";
-            
-            // Access model info with: djq['{{ id }}'].modelName and djq['{{ id }}'].modelId
+            // Extract instance_id from attributes
+            var attrs = "{{ final_attrs|escapejs }}";
+            var match = attrs.match(/instance_id="([^"]*)"/);
+            var match2 = attrs.match(/model="([^"]*)"/);
+            if (match && match[1] && match2 && match2[1]) {
+                console.log("Instance ID and model:", match[1], match2[1]);
+                // Use the instance_id as needed
+            }
         })();
     </script>
 </div>

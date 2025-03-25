@@ -2,3 +2,5 @@ django==4.2.15
 django-quill-editor
 channels[daphne]
 pycrdt-websocket
+django-crispy-forms
+crispy-bootstrap5
