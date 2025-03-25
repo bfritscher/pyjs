@@ -14,8 +14,12 @@ class QuillConsumer(YjsConsumer):
     active_connections = {}
     
     async def connect(self):
-        await super().connect()
+        user = self.scope["user"]
+        # TODO permission checks?
+        if user is None or user.is_anonymous:
+            await self.close()
         
+        await super().connect()
         # Initialize connection counter for this room
         if self.room_name not in self.active_connections:
             self.active_connections[self.room_name] = 0

@@ -3,3 +3,5 @@ from django_quill.fields import QuillField
 
 class QuillPost(models.Model):
     content = QuillField()
+    more_content = QuillField()
+

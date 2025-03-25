@@ -3,9 +3,25 @@
 
     <div id="quill-{{ id }}" class="django-quill-widget" data-config="{{ config }}" data-type="django-quill"></div>
     <input id="quill-input-{{ id }}" name="{{ name }}" type="hidden">
-    <script>
+    <script type="module">
+        import {
+            QuillBinding,
+            QuillCursors
+          } from '{% static "demo/editor-bundle.mjs" %}';
+        Quill.register("modules/cursors", QuillCursors);
         (function () {
-            var wrapper = new QuillWrapper('quill-{{ id }}', 'quill-input-{{ id }}', JSON.parse('{{ config|safe|escapejs }}'));
+            // Extract instance_id from attributes
+            const attrs = "{{ final_attrs|escapejs }}";
+            const mId = attrs.match(/instance_id="([^"]*)"/);
+            const mModel = attrs.match(/model="([^"]*)"/);
+            const isCollab = mId && mId[1] && mModel && mModel[1];
+            const options = JSON.parse('{{ config|safe|escapejs }}');
+            if (isCollab) {
+                options.modules = options.modules || {};
+                options.modules.cursors = true;
+            }
+
+            var wrapper = new QuillWrapper('quill-{{ id }}', 'quill-input-{{ id }}', options);
             {% if quill and quill.delta %}
                 // try django_quill/quill.py/Quill instance
                 var contents = JSON.parse('{{ quill.delta|safe|escapejs }}');
@@ -26,17 +42,12 @@
             // Allow quill object interaction outer scope
             djq['{{ id }}'] = wrapper;
             
-            // Extract instance_id from attributes
-            const attrs = "{{ final_attrs|escapejs }}";
-            const mId = attrs.match(/instance_id="([^"]*)"/);
-            const mModel = attrs.match(/model="([^"]*)"/);
-            if (mId && mId[1] && mModel && mModel[1]) {
+            if (isCollab) {
                 console.log("Instance ID and model:", mId[1], mModel[1]);
                 const room = `${mModel[1]}__${mId[1]}`;
 
                 const task = () => {
                     const type = window.quillRoomDocs[room].ydoc.getText('{{ name }}')
-                    wrapper.quill.addModule('cursors')
                     const binding = new QuillBinding(type, wrapper.quill, window.quillRoomDocs[room].wsProvider.awareness);
                 }
 
