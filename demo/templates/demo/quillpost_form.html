@@ -1,6 +1,44 @@
 {% load static %}
 {% load crispy_forms_tags %}
+<script type="module">
+    // Import from our bundled file
+    import {
+      Y,
+      QuillBinding,
+      QuillCursors,
+      WebsocketProvider,
+    } from '{% static "demo/editor-bundle.mjs" %}';
+    window.QuillBinding = QuillBinding;
 
-<div>
+    // Now use the imported modules
+    const ydoc = new Y.Doc();
+    const model = 'demo.QuillPost'
+    const id = {{ object.id|default:"null" }};
+    const room = `${model}__${id}`; 
+    const wsProvider = new WebsocketProvider(
+      "ws://localhost:8000/ws",
+      room,
+      ydoc,
+    );
+
+    wsProvider.on("status", (event) => {
+        document.getElementById("connection-status").innerText = event.status;
+    });
+
+    window.quillRoomDocs = window.quillRoomDocs || {};
+    window.quillRoomDocs[room] = {
+        ydoc,
+        wsProvider,
+    };
+    window.quillRoomQueue = window.quillRoomQueue || [];
+    while (window.quillRoomQueue.length) {
+        const task = window.quillRoomQueue.shift();
+        task();
+    }
+
+    Quill.register("modules/cursors", QuillCursors);
+</script>
+<div style="width: 400px; height: 60vh;">
+    <div id="connection-status"></div>
     {% crispy form %}
 </div>

@@ -27,12 +27,26 @@
             djq['{{ id }}'] = wrapper;
             
             // Extract instance_id from attributes
-            var attrs = "{{ final_attrs|escapejs }}";
-            var match = attrs.match(/instance_id="([^"]*)"/);
-            var match2 = attrs.match(/model="([^"]*)"/);
-            if (match && match[1] && match2 && match2[1]) {
-                console.log("Instance ID and model:", match[1], match2[1]);
-                // Use the instance_id as needed
+            const attrs = "{{ final_attrs|escapejs }}";
+            const mId = attrs.match(/instance_id="([^"]*)"/);
+            const mModel = attrs.match(/model="([^"]*)"/);
+            if (mId && mId[1] && mModel && mModel[1]) {
+                console.log("Instance ID and model:", mId[1], mModel[1]);
+                const room = `${mModel[1]}__${mId[1]}`;
+
+                const task = () => {
+                    const type = window.quillRoomDocs[room].ydoc.getText('{{ name }}')
+                    wrapper.quill.addModule('cursors')
+                    const binding = new QuillBinding(type, wrapper.quill, window.quillRoomDocs[room].wsProvider.awareness);
+                }
+
+                if (window.quillRoomDocs && window.quillRoomDocs[room]) {
+                    task();
+                } else {
+                    window.quillRoomQueue = window.quillRoomQueue || [];
+                    window.quillRoomQueue.push(task);
+
+                }
             }
         })();
     </script>

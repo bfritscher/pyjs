@@ -20,3 +20,6 @@ class CollabView(UpdateView):
     model = models.QuillPost
     form_class = forms.QuillPostForm
     
+    def get_success_url(self):
+        # Redirect to the same URL after successful form submission
+        return self.request.path
